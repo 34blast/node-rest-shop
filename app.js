@@ -3,9 +3,22 @@ const app = express();
 
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const productRoutes = require('./api/routes/products');
 const orderRoutes = require('./api/routes/orders');
+
+mongoose.connect('mongodb://localhost:27017/test', {
+    useNewUrlParser: true
+});
+/*
+mongoose.connect(
+    'mongodb+srv://34blast:' + 
+    process.env.MONGO_ATLAS_PW + 
+    '@cluster0-jjq0t.mongodb.net/test?retryWrites=true',  {
+        useMongoCLient: true
+    });
+*/
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({
