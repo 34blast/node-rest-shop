@@ -4,20 +4,28 @@ const Product = require('../models/product');
 const mongoose = require('mongoose');
 
 router.get('/', (req, res, next) => {
+    const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     Product.find()
+        .select('_id name price')
         .exec()
         .then(docs => {
-            console.log(docs);
-            res.status(200).json(docs);
-            /*
-            if( docs.length > 0) {
-                res.status(200).json(docs);
-            } else {
-                res.status(404).json({
-                    message: 'No entries found, empty'
-                });
-            }
-            */
+            const newDocs = {
+                count: docs.length,
+                products: docs.map(doc => {
+                    return {
+                        _id: doc._id,
+                        name: doc.name,
+                        price: doc.price,
+
+                        request: {
+                            type: 'GET',
+                            url: fullUrl + doc._id
+                        }
+                    };
+                }),
+
+            };
+            res.status(200).json(newDocs);
         })
         .catch(err => {
             console.log(docs);
@@ -28,6 +36,7 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/', (req, res, next) => {
+    const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
         name: req.body.name,
@@ -37,8 +46,16 @@ router.post('/', (req, res, next) => {
     product.save().then(result => {
         console.log(result);
         res.status(201).json({
-            message: 'Handling POST requests to /products',
-            createdProduct: result
+            message: 'Created product sucessfully',
+            createdProduct: {
+                _id: result._id,
+                name: result.name,
+                price: result.price,
+                request: {
+                    type: 'GET',
+                    url: fullUrl + result._id
+                }
+            }
         });
 
     }).catch(err => {
@@ -51,13 +68,21 @@ router.post('/', (req, res, next) => {
 });
 
 router.get('/:productId', (req, res, next) => {
+    const allProductsUrl = req.protocol + '://' + req.get('host') + '/products' + '/';
     const id = req.params.productId;
     Product.findById(id)
+        .select('_id name price')
         .exec()
         .then(doc => {
-            console.log('From database', doc);
             if (doc) {
-                res.status(200).json(doc);
+                res.status(200).json({
+                    product: doc,
+                    request: {
+                        type: 'GET',
+                        descriptions: 'Get all products',
+                        url: allProductsUrl
+                    }
+                });
             } else {
                 res.status(404).json({
                     message: 'No valid entry found for given id'
@@ -74,20 +99,27 @@ router.get('/:productId', (req, res, next) => {
 
 router.patch('/:productId', (req, res, next) => {
     const id = req.params.productId;
+    const getProductURL = req.protocol + '://' + req.get('host') + '/products' + '/' + id;
     const updateOps = {};
 
     for (const ops of req.body) {
         updateOps[ops.propName] = ops.value;
     }
-    Product.update({
-        _id: id
-    }, {
-        $set: updateOps
-    })
+    Product.updateOne({
+            _id: id
+        }, {
+            $set: updateOps
+        })
         .exec()
         .then(result => {
             console.log(result);
-            res.status(200).json(result);
+            res.status(200).json({
+                message: 'Product updated',
+                request: {
+                    type: 'GET',
+                    url: getProductURL
+                }
+            });
         })
         .catch(err => {
             console.log(err);
@@ -100,8 +132,8 @@ router.patch('/:productId', (req, res, next) => {
 router.delete('/:productId', (req, res, next) => {
     const id = req.params.productId;
     Product.remove({
-        _id: id
-    })
+            _id: id
+        })
         .exec()
         .then(result => {
             res.status(200).json(result);
