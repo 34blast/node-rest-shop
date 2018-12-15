@@ -1,0 +1,29 @@
+{
+  "name": "rest-shop",
+  "version": "1.0.0",
+  "description": "A Node.js RESTful API Tutorial Project(Build a simple shop API)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/34blast/node-rest-shop.git"
+  },
+  "keywords": [
+    "node",
+    "restful"
+  ],
+  "author": "Richard M. Scott",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/34blast/node-rest-shop/issues"
+  },
+  "homepage": "https://github.com/34blast/node-rest-shop#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "eslint": "^5.10.0"
+  }
+}
