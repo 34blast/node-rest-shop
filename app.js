@@ -8,17 +8,30 @@ const mongoose = require('mongoose');
 const productRoutes = require('./api/routes/products');
 const orderRoutes = require('./api/routes/orders');
 
-mongoose.connect('mongodb://localhost:27017/test', {
+// Mongo Atlas on Google Cloud
+/*
+const dbURL = 'mongodb://34blast:' +
+    process.env.MONGO_ATLAS_PW + '@' +
+    'cluster0-shard-00-00-ghnqk.gcp.mongodb.net:27017,' +
+    'cluster0-shard-00-01-ghnqk.gcp.mongodb.net:27017,' +
+    'cluster0-shard-00-02-ghnqk.gcp.mongodb.net:27017' +
+    '/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin';
+
+// Mongo Atlas on AWS Cloud
+const dbURL = 'mongodb://34blast:' +
+    process.env.MONGO_ATLAS_PW + '@' +
+    'cluster1-shard-00-00-jjq0t.mongodb.net:27017,' +
+    'cluster1-shard-00-01-jjq0t.mongodb.net:27017,' +
+    'cluster1-shard-00-02-jjq0t.mongodb.net:27017' +
+    '/test?ssl=true&replicaSet=cluster1-shard-0&authSource=admin';
+ */
+// Mongo db on local host
+const dbURL = 'mongodb://localhost:27017/test';
+console.log('dbURL=', dbURL);
+
+mongoose.connect(dbURL, {
     useNewUrlParser: true
 });
-/*
-mongoose.connect(
-    'mongodb+srv://34blast:' + 
-    process.env.MONGO_ATLAS_PW + 
-    '@cluster0-jjq0t.mongodb.net/test?retryWrites=true',  {
-        useMongoCLient: true
-    });
-*/
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({
