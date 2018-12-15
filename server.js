@@ -1,3 +1,4 @@
+// Server file,  uses Express to do routing
 const http = require('http');
 const app = require('./app');
 
