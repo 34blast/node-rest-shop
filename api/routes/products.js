@@ -131,12 +131,20 @@ router.patch('/:productId', (req, res, next) => {
 
 router.delete('/:productId', (req, res, next) => {
     const id = req.params.productId;
+    const getProductURL = req.protocol + '://' + req.get('host') + '/products/';
     Product.remove({
-            _id: id
-        })
+        id: id
+    })
         .exec()
         .then(result => {
-            res.status(200).json(result);
+            res.status(200).json({
+                message: 'Product deleted, to create again',
+                request: {
+                    type: 'POST',
+                    url: getProductURL,
+                    body: { name: 'String', price: 'Number'}
+                }
+            });
         })
         .catch(err => {
             console.log(err);
