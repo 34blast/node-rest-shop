@@ -5,13 +5,38 @@ const mongoose = require('mongoose');
 
 // multer is used for partner binary and uploading images
 const multer = require('multer');
-const upload = multer({dest: 'uploads/'});
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function(req, file, cb) {
+//        cb(null, Date.now() + file.originalname);
+        cb(null, generateImageFileName(file.originalname));
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    if( file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+};
+
+const upload = multer({
+    storage: storage, 
+    limits: {
+        fileSize: 1024 * 1024 * 5
+    },
+    fileFilter: fileFilter
+});
 
 // the default http GET for /products
 router.get('/', (req, res, next) => {
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     Product.find()
-        .select('_id name price')
+        .select('_id name price productImage')
         .exec()
         .then(docs => {
             const newDocs = {
@@ -21,7 +46,7 @@ router.get('/', (req, res, next) => {
                         _id: doc._id,
                         name: doc.name,
                         price: doc.price,
-
+                        productImage: doc.productImage,
                         request: {
                             type: 'GET',
                             url: fullUrl + doc._id
@@ -47,7 +72,8 @@ router.post('/', upload.single('productImage'), (req, res, next) => {
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
         name: req.body.name,
-        price: req.body.price
+        price: req.body.price,
+        productImage: req.file.path
     });
 
     product.save().then(result => {
@@ -58,6 +84,7 @@ router.post('/', upload.single('productImage'), (req, res, next) => {
                 _id: result._id,
                 name: result.name,
                 price: result.price,
+                productImage: result.productImage,
                 request: {
                     type: 'GET',
                     url: fullUrl + result._id
@@ -78,7 +105,7 @@ router.get('/:productId', (req, res, next) => {
     const allProductsUrl = req.protocol + '://' + req.get('host') + '/products' + '/';
     const id = req.params.productId;
     Product.findById(id)
-        .select('_id name price')
+        .select('_id name price productImage')
         .exec()
         .then(doc => {
             if (doc) {
@@ -113,10 +140,10 @@ router.patch('/:productId', (req, res, next) => {
         updateOps[ops.propName] = ops.value;
     }
     Product.updateOne({
-            _id: id
-        }, {
-            $set: updateOps
-        })
+        _id: id
+    }, {
+        $set: updateOps
+    })
         .exec()
         .then(result => {
             console.log(result);
@@ -137,11 +164,8 @@ router.patch('/:productId', (req, res, next) => {
 });
 
 router.delete('/:productId', (req, res, next) => {
-    const id = req.params.productId;
     const getProductURL = req.protocol + '://' + req.get('host') + '/products/';
-    Product.remove({
-        id: id
-    })
+    Product.remove({_id: req.params.productId})
         .exec()
         .then(result => {
             res.status(200).json({
@@ -162,3 +186,14 @@ router.delete('/:productId', (req, res, next) => {
 });
 
 module.exports = router;
+
+function generateImageFileName(inFileName) {
+    const path = require('path');
+    const fileParser = path.parse(inFileName);  
+    let dateString = replaceAll(new Date().toISOString(), ':', '-');
+    return fileParser.name + '_' + dateString  + fileParser.ext;
+}
+
+function replaceAll(inputString, search, replacement) {
+    return inputString.split(search).join(replacement);
+}

@@ -37,6 +37,7 @@ mongoose.connect(dbURL, {
 });
 
 app.use(morgan('dev'));
+app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.urlencoded({
     extended: false
 }));

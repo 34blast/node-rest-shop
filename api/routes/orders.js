@@ -117,7 +117,7 @@ router.delete('/:orderId', (req, res, next) => {
     const id = req.params.orderId;
     console.log('Order id to delete' + id);
     const getOrderURL = req.protocol + '://' + req.get('host') + '/orders/';
-    Order.r;
+    
     Order.remove({_id: req.params.orderId})
         .exec()
         .then(result => {
