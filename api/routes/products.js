@@ -164,10 +164,28 @@ router.patch('/:productId', (req, res, next) => {
 });
 
 router.delete('/:productId', (req, res, next) => {
+    let id = req.params.productId;
     const getProductURL = req.protocol + '://' + req.get('host') + '/products/';
-    Product.remove({_id: req.params.productId})
+    let imagePath = null;
+    Product.findById(id)
+        .select('productImage')
+        .exec()
+        .then(doc => {
+            if (doc) {
+                imagePath = doc.productImage;
+            } 
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                error: err
+            });
+        });
+
+    Product.deleteOne({_id: req.params.productId})
         .exec()
         .then(result => {
+            deleteImageFile(imagePath);
             res.status(200).json({
                 message: 'Product deleted, to create again',
                 request: {
@@ -187,6 +205,16 @@ router.delete('/:productId', (req, res, next) => {
 
 module.exports = router;
 
+function deleteImageFile(inFilePath) {
+    const fs = require('fs');
+    const util = require('util');
+
+    const unlinkSync = util.promisify(fs.unlinkSync);
+
+    unlinkSync(inFilePath)
+        .then(() => console.log('file created successfully with promisify!'))
+        .catch(error => console.log(error, 'ERROR, could not delete file pointed to by db,  could already be deleted', inFilePath));
+}
 function generateImageFileName(inFileName) {
     const path = require('path');
     const fileParser = path.parse(inFileName);  
