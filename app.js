@@ -1,3 +1,7 @@
+// app is for handling the routes of our server
+// Express, morgan, body-parser, mongoose and multer are all installed via NPM and required
+// for this test project
+
 const express = require('express');
 const app = express();
 

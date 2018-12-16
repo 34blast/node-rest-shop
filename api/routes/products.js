@@ -3,6 +3,11 @@ const router = express.Router();
 const Product = require('../models/product');
 const mongoose = require('mongoose');
 
+// multer is used for partner binary and uploading images
+const multer = require('multer');
+const upload = multer({dest: 'uploads/'});
+
+// the default http GET for /products
 router.get('/', (req, res, next) => {
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     Product.find()
@@ -35,7 +40,9 @@ router.get('/', (req, res, next) => {
         });
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', upload.single('productImage'), (req, res, next) => {
+    console.log(req.file);
+
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
