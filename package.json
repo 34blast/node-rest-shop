@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/34blast/node-rest-shop#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "eslint": "^5.10.0",
     "express": "^4.16.4",

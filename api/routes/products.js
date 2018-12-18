@@ -7,17 +7,17 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 
 const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
+    destination: function (req, file, cb) {
         cb(null, './uploads/');
     },
-    filename: function(req, file, cb) {
-//        cb(null, Date.now() + file.originalname);
+    filename: function (req, file, cb) {
+        //        cb(null, Date.now() + file.originalname);
         cb(null, generateImageFileName(file.originalname));
     }
 });
 
 const fileFilter = (req, file, cb) => {
-    if( file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
         cb(null, true);
     } else {
         cb(null, false);
@@ -25,7 +25,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-    storage: storage, 
+    storage: storage,
     limits: {
         fileSize: 1024 * 1024 * 5
     },
@@ -140,10 +140,10 @@ router.patch('/:productId', (req, res, next) => {
         updateOps[ops.propName] = ops.value;
     }
     Product.updateOne({
-        _id: id
-    }, {
-        $set: updateOps
-    })
+            _id: id
+        }, {
+            $set: updateOps
+        })
         .exec()
         .then(result => {
             console.log(result);
@@ -173,7 +173,7 @@ router.delete('/:productId', (req, res, next) => {
         .then(doc => {
             if (doc) {
                 imagePath = doc.productImage;
-            } 
+            }
         })
         .catch(err => {
             console.log(err);
@@ -182,7 +182,9 @@ router.delete('/:productId', (req, res, next) => {
             });
         });
 
-    Product.deleteOne({_id: req.params.productId})
+    Product.deleteOne({
+        id: req.params.productId
+    })
         .exec()
         .then(result => {
             deleteImageFile(imagePath);
@@ -191,7 +193,10 @@ router.delete('/:productId', (req, res, next) => {
                 request: {
                     type: 'POST',
                     url: getProductURL,
-                    body: { name: 'String', price: 'Number'}
+                    body: {
+                        name: 'String',
+                        price: 'Number'
+                    }
                 }
             });
         })
@@ -215,11 +220,12 @@ function deleteImageFile(inFilePath) {
         .then(() => console.log('file created successfully with promisify!'))
         .catch(error => console.log(error, 'ERROR, could not delete file pointed to by db,  could already be deleted', inFilePath));
 }
+
 function generateImageFileName(inFileName) {
     const path = require('path');
-    const fileParser = path.parse(inFileName);  
+    const fileParser = path.parse(inFileName);
     let dateString = replaceAll(new Date().toISOString(), ':', '-');
-    return fileParser.name + '_' + dateString  + fileParser.ext;
+    return fileParser.name + '_' + dateString + fileParser.ext;
 }
 
 function replaceAll(inputString, search, replacement) {
