@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const checkAuth = require('../middleware/check-auth');
 
 const Order = require('../models/order');
 const Product = require('../models/product');
 
 // the url is /orders already since it is in orders.js file
-router.get('/', (req, res, next) => {
+router.get('/', checkAuth, (req, res, next) => {
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     Order.find().select('_id quantity product')
         .populate ('product', 'id name')
@@ -34,7 +35,7 @@ router.get('/', (req, res, next) => {
         });
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', checkAuth, (req, res, next) => {
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     Product.findById(req.body.productId)
         .then(product => {
@@ -80,7 +81,7 @@ router.post('/', (req, res, next) => {
         });
 });
 
-router.get('/:orderId', (req, res, next) => {
+router.get('/:orderId', checkAuth, (req, res, next) => {
     const allOrdersUrl = req.protocol + '://' + req.get('host') + '/orders' + '/';
     const id = req.params.orderId;
     Order.findById(id)
@@ -113,7 +114,7 @@ router.get('/:orderId', (req, res, next) => {
         });
 });
 
-router.delete('/:orderId', (req, res, next) => {
+router.delete('/:orderId', checkAuth, (req, res, next) => {
     const id = req.params.orderId;
     console.log('Order id to delete' + id);
     const getOrderURL = req.protocol + '://' + req.get('host') + '/orders/';

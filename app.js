@@ -33,6 +33,7 @@ const dbURL = 'mongodb://34blast:' +
 // Mongo db on local host
 const dbURL = 'mongodb://localhost:27017/test';
 
+mongoose.set('useCreateIndex', true);
 mongoose.connect(dbURL, {
     useNewUrlParser: true
 });

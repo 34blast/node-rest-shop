@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 
 // multer is used for partner binary and uploading images
 const multer = require('multer');
+const checkAuth = require('../middleware/check-auth');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -58,16 +59,14 @@ router.get('/', (req, res, next) => {
             res.status(200).json(newDocs);
         })
         .catch(err => {
-            console.log(docs);
             res.status(500).json({
                 error: err
             });
         });
 });
 
-router.post('/', upload.single('productImage'), (req, res, next) => {
-    console.log(req.file);
-
+router.post('/', checkAuth, upload.single('productImage'), (req, res, next) => {
+ 
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
@@ -77,7 +76,6 @@ router.post('/', upload.single('productImage'), (req, res, next) => {
     });
 
     product.save().then(result => {
-        console.log(result);
         res.status(201).json({
             message: 'Created product sucessfully',
             createdProduct: {
@@ -93,7 +91,6 @@ router.post('/', upload.single('productImage'), (req, res, next) => {
         });
 
     }).catch(err => {
-        console.log(err);
         res.status(500).json({
             error: err
         });
@@ -124,14 +121,13 @@ router.get('/:productId', (req, res, next) => {
             }
         })
         .catch(err => {
-            console.log(err);
             res.status(500).json({
                 error: err
             });
         });
 });
 
-router.patch('/:productId', (req, res, next) => {
+router.patch('/:productId', checkAuth, (req, res, next) => {
     const id = req.params.productId;
     const getProductURL = req.protocol + '://' + req.get('host') + '/products' + '/' + id;
     const updateOps = {};
@@ -140,13 +136,12 @@ router.patch('/:productId', (req, res, next) => {
         updateOps[ops.propName] = ops.value;
     }
     Product.updateOne({
-            _id: id
-        }, {
-            $set: updateOps
-        })
+        id: id
+    }, {
+        $set: updateOps
+    })
         .exec()
         .then(result => {
-            console.log(result);
             res.status(200).json({
                 message: 'Product updated',
                 request: {
@@ -156,14 +151,13 @@ router.patch('/:productId', (req, res, next) => {
             });
         })
         .catch(err => {
-            console.log(err);
             res.status(500).json({
                 error: err
             });
         });
 });
 
-router.delete('/:productId', (req, res, next) => {
+router.delete('/:productId', checkAuth, (req, res, next) => {
     let id = req.params.productId;
     const getProductURL = req.protocol + '://' + req.get('host') + '/products/';
     let imagePath = null;
@@ -176,14 +170,13 @@ router.delete('/:productId', (req, res, next) => {
             }
         })
         .catch(err => {
-            console.log(err);
             res.status(500).json({
                 error: err
             });
         });
 
     Product.deleteOne({
-        id: req.params.productId
+        _id: req.params.productId
     })
         .exec()
         .then(result => {
@@ -201,7 +194,6 @@ router.delete('/:productId', (req, res, next) => {
             });
         })
         .catch(err => {
-            console.log(err);
             res.status(500).json({
                 error: err
             });

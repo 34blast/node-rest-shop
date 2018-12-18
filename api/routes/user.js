@@ -5,11 +5,13 @@ const mongoose = require('mongoose');
 // bcrypt is used to hash the password and encrypt it by salting it
 // npm install bcrypt.js
 const bcryptjs = require('bcryptjs');
+
+// use jsonwebtoken for JWT exchanges, security
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 // the url is /orders already since it is in orders.js file
 router.get('/', (req, res, next) => {
-    const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl + '/';
     User.find()
         .select('_id email password')
         .exec()
@@ -28,7 +30,6 @@ router.get('/', (req, res, next) => {
             res.status(200).json(newDocs);
         })
         .catch(err => {
-            console.log(docs);
             res.status(500).json({
                 error: err
             });
@@ -36,15 +37,13 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/signup', (req, res, next) => {
-    console.log('passed in email = ', req.body.email);
     // check if email is already used
     User.find({
-            email: req.body.email
-        })
+        email: req.body.email
+    })
         .exec()
         .then(user => {
             if (user.length >= 1) {
-                console.log('user = ', user);
                 return res.status(409).json({
                     message: 'Can not create user, ERROR, Email already in use'
                 });
@@ -62,15 +61,13 @@ router.post('/signup', (req, res, next) => {
                             password: hash
                         });
                         user.
-                        save()
+                            save()
                             .then(result => {
-                                console.log(result);
                                 res.status(201).json({
                                     message: 'User created'
                                 });
                             })
                             .catch(err => {
-                                console.log(err);
                                 res.status(500).json({
                                     eror: err
                                 });
@@ -82,6 +79,54 @@ router.post('/signup', (req, res, next) => {
         });
 });
 
+router.post('/login', (req, res, next) => {
+ 
+    User.find({
+        email: req.body.email
+    })
+        .exec()
+        .then(user => {
+            if(user.length < 1) {
+                return res.status(401).json({
+                    message: 'Auth failed'
+                });
+            }
+            bcryptjs.compare(req.body.password, user[0].password, (err, result) => {
+                if( err ) {
+                    return res.status(401).json({
+                        message: 'Auth failed'
+                    });
+                }
+                if( result) {
+                    // use const to run synchronously 
+                    const token = jwt.sign({
+                        email: user[0].email,
+                        userId: user[0]._id
+                    }, 
+                    process.env.JWT_KEY, 
+                    {
+                        expiresIn: '1h'
+                    });
+                    return res.status(200).json({
+                        message: 'Authorization sucessful',
+                        token: token
+                    });
+                }
+                return res.status(401).json({
+                    message: 'Auth failed'
+                });
+
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json( {
+                error: err
+            });
+        });
+     
+});
+
 router.delete('/:userId', (req, res, next) => {
     const id = req.params.userId;
     User.findById(id)
@@ -89,19 +134,16 @@ router.delete('/:userId', (req, res, next) => {
         .exec()
         .then(doc => {
             if (doc) {
-                console.log('Found id');
                 User.deleteOne({
                     _id: id
                 })
                     .exec()
                     .then(result => {
-                        console.log('result = ', result);
                         res.status(200).json({
                             message: 'User deleted',
                         });
                     })
                     .catch(err => {
-                        console.log(err);
                         res.status(500).json({
                             error: err
                         });
@@ -113,7 +155,6 @@ router.delete('/:userId', (req, res, next) => {
             }
         })
         .catch(err => {
-            console.log(err);
             res.status(500).json({
                 error: err
             });
